@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+
+# runtime output artifacts
+out.json
+out2.json
+explain.txt
+stats.txt

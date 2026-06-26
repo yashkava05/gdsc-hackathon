@@ -3,7 +3,8 @@ import json
 import requests
 
 from schema import LogEvent, Severity
-from prompts import SYSTEM_PROMPT
+from prompts import SYSTEM_PROMPT, CRITIQUE_PROMPT
+from playbook import apply_playbook
 
 _OLLAMA_URL = "http://localhost:11434/api/generate"
 _MODEL = "gemma2:2b"
@@ -49,6 +50,23 @@ def _repair_prompt(line_number: int, line: str, previous_output: str, error_mess
     )
 
 
+def _confidence_pass(line: str, event: LogEvent) -> str:
+    try:
+        prompt = (
+            f"{CRITIQUE_PROMPT}\n\n"
+            f"Original log line:\n{line}\n\n"
+            f"Extracted JSON:\n{event.model_dump_json()}"
+        )
+        raw = _call_ollama(prompt)
+        data = json.loads(_strip_code_fence(raw))
+        confidence = data["confidence"]
+        if confidence in ("high", "medium", "low"):
+            return confidence
+        return "low"
+    except Exception:
+        return "low"
+
+
 def extract_event(line_number: int, line: str) -> LogEvent | dict:
     last_raw = None
     last_error = None
@@ -62,9 +80,11 @@ def extract_event(line_number: int, line: str) -> LogEvent | dict:
             raw = _call_ollama(prompt)
             last_raw = raw
             data = json.loads(_strip_code_fence(raw))
-            data["confidence"] = "unvalidated"
             data["source_line"] = line_number
-            return LogEvent(**data)
+            event = LogEvent(**data)
+            event.confidence = _confidence_pass(line, event)
+            event = apply_playbook(event)
+            return event
         except Exception as exc:
             last_error = str(exc)
 

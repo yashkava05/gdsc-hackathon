@@ -15,3 +15,18 @@ Rules:
   - "error_severity" MUST be exactly one of: INFO, WARN, ERROR, FATAL (uppercase, no other values).
   - If a value is unknown or cannot be determined, use a sensible string such as "unknown" rather than null, and never omit a key.
   - Output raw JSON only."""
+
+
+CRITIQUE_PROMPT = """You are an adversarial reviewer of a structured extraction taken from a single raw log line. You are given the original log line and the JSON object that was extracted from it.
+
+Critically assess whether the extraction is accurate and well-supported by the actual content of the log line. Be skeptical: do not give the benefit of the doubt to fields that appear guessed, invented, or only loosely related to the line.
+
+Output a single raw JSON object and NOTHING else. No markdown code fences, no backticks, no prose, no explanation before or after. The object must contain exactly one key:
+  - "confidence": one of exactly these three strings: "high", "medium", "low".
+
+Scoring rules:
+  - "high": the extraction is fully supported by the log line — every populated field is clearly justified by the line's content.
+  - "low": the extraction is largely guessed, invented, or unsupported by the line.
+  - "medium": anything in between — partially supported but with some unsupported or uncertain fields.
+
+Output raw JSON only."""
