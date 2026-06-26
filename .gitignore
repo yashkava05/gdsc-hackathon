@@ -7,6 +7,7 @@ out2.json
 explain.txt
 stats.txt
 events.jsonl
+events.json
 run.log
 diag.txt
 out.jsonl

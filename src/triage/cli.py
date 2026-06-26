@@ -118,13 +118,13 @@ def main():
                 results.append(entry)
 
         if not stream:
-            sys.stdout.write(json.dumps(results) + "\n")
+            sys.stdout.write(json.dumps(results, indent=2) + "\n")
             stdout_done = True
 
     except Exception:
         exit_code = 1
         if not stream and not stdout_done:
-            sys.stdout.write(json.dumps(results) + "\n")
+            sys.stdout.write(json.dumps(results, indent=2) + "\n")
             stdout_done = True
         print("triage: unexpected error during processing:", file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
