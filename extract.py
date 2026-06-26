@@ -8,15 +8,50 @@ from playbook import apply_playbook
 
 _OLLAMA_URL = "http://localhost:11434/api/generate"
 _MODEL = "gemma2:2b"
-_TIMEOUT = 120
+_TIMEOUT = 30
 _MAX_ATTEMPTS = 3
 
 
+class OllamaNetworkError(RuntimeError):
+    """Raised when the Ollama HTTP request itself fails (connection, timeout, etc.)."""
+
+
+class OllamaResponseError(RuntimeError):
+    """Raised when Ollama responds but the body is unusable (bad status, missing key, error field)."""
+
+
 def _call_ollama(prompt: str) -> str:
-    body = {"model": _MODEL, "prompt": prompt, "stream": False}
-    response = requests.post(_OLLAMA_URL, json=body, timeout=_TIMEOUT)
-    response.raise_for_status()
-    return response.json()["response"]
+    body = {
+        "model": _MODEL,
+        "prompt": prompt,
+        "stream": False,
+        "format": "json",
+        "options": {"temperature": 0.1, "num_predict": 256},
+    }
+    try:
+        response = requests.post(_OLLAMA_URL, json=body, timeout=_TIMEOUT)
+    except requests.exceptions.RequestException as exc:
+        raise OllamaNetworkError(f"Network error contacting Ollama: {exc}") from exc
+
+    if response.status_code != 200:
+        raise OllamaResponseError(
+            f"Ollama returned HTTP {response.status_code}: {response.text[:200]}"
+        )
+
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise OllamaResponseError(f"Ollama response is not valid JSON: {exc}") from exc
+
+    if "error" in payload:
+        raise OllamaResponseError(f"Ollama error: {payload['error']}")
+
+    if "response" not in payload:
+        raise OllamaResponseError(
+            f"Ollama response missing 'response' key. Keys present: {list(payload.keys())}"
+        )
+
+    return payload["response"]
 
 
 def _strip_code_fence(text: str) -> str:
@@ -86,6 +121,9 @@ def extract_event(line_number: int, line: str) -> LogEvent | dict:
             event.confidence = _confidence_pass(line, event)
             event = apply_playbook(event)
             return event
+        except OllamaNetworkError as exc:
+            last_error = str(exc)
+            break  # network is down — retrying will not help
         except Exception as exc:
             last_error = str(exc)
 
