@@ -5,7 +5,13 @@
       "Bash(curl -s -m 3 http://localhost:11434/api/tags)",
       "Bash(echo \"exit: $?\")",
       "Bash(gh auth *)",
-      "Bash(git ls-remote *)"
+      "Bash(git ls-remote *)",
+      "Bash(git commit -q -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(echo \"exit=$?\")",
+      "Read(//tmp/**)",
+      "Bash(git add *)"
     ]
   }
 }
