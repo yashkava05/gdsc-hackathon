@@ -81,6 +81,7 @@ def extract_event(line_number: int, line: str) -> LogEvent | dict:
             last_raw = raw
             data = json.loads(_strip_code_fence(raw))
             data["source_line"] = line_number
+            data["schema_version"] = "1.0"
             event = LogEvent(**data)
             event.confidence = _confidence_pass(line, event)
             event = apply_playbook(event)

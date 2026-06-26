@@ -6,3 +6,6 @@ out.json
 out2.json
 explain.txt
 stats.txt
+events.jsonl
+run.log
+diag.txt
