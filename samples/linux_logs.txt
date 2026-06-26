@@ -1,0 +1,4 @@
+Jun 14 15:16:01 combo sshd: session opened for user root
+Jun 14 15:16:02 combo sshd: authentication failure for invalid user
+Jun 14 15:16:05 combo kernel: WARNING: temperature high
+Jun 14 15:16:09 combo kernel: ERROR mounting filesystem

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 *)",
+      "Bash(curl -s -m 3 http://localhost:11434/api/tags)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(gh auth *)",
+      "Bash(git ls-remote *)"
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+081109 203615 INFO dfs.DataNode: receiving block blk_-1608999
+081109 203807 WARN dfs.FSNamesystem: block is null
+081109 204005 ERROR dfs.DataNode: writeBlock received exception
+081109 204130 INFO dfs.DataNode: served block blk_4567
+081109 204200 FATAL dfs.NameNode: namenode shutting down panic
