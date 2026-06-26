@@ -1,4 +1,4 @@
-from schema import LogEvent
+from .schema import LogEvent
 
 REMEDIATIONS: dict[str, str] = {
     "out of memory": "Increase heap/memory allocation or investigate a memory leak; restart the affected service.",

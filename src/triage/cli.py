@@ -3,14 +3,63 @@ import json
 import argparse
 import traceback
 
-from funnel import score_lines
-from extract import extract_event
-from schema import LogEvent
+from .funnel import score_lines
+from .extract import extract_event
+from .schema import LogEvent
+
+_BANNER = r"""
+ _____ ____  ___    _    ____ _____
+|_   _|  _ \|_ _|  / \  / ___| ____|
+  | | | |_) || |  / _ \| |  _|  _|
+  | | |  _ < | | / ___ \ |_| | |___
+  |_| |_| \_\___/_/   \_\____|_____|
+
+  log triage  -  regex funnel + local Gemma extraction
+"""
+
+
+def _show_banner():
+    if sys.stderr.isatty():
+        print(_BANNER, file=sys.stderr)
+
+
+def _read_lines(paths):
+    if paths:
+        lines = []
+        for path in paths:
+            try:
+                with open(path, "r") as handle:
+                    lines.extend(handle.read().splitlines())
+            except OSError as exc:
+                print(f"triage: cannot read {path}: {exc}", file=sys.stderr)
+                continue
+        return lines
+    return sys.stdin.read().splitlines()
 
 
 def main():
+    _show_banner()
+
     parser = argparse.ArgumentParser(
-        description="triage: filter log lines on stdin and emit structured JSON on stdout."
+        prog="triage",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=(
+            "Filter noisy server logs with a regex funnel, extract structured "
+            "events with a local Gemma model via Ollama, and emit strictly-"
+            "validated JSON to stdout (stats and diagnostics go to stderr)."
+        ),
+        epilog=(
+            "examples:\n"
+            "  triage app.log\n"
+            "  triage logs/*.log\n"
+            "  cat app.log | triage\n"
+            "  tail -f app.log | triage --stream\n"
+        ),
+    )
+    parser.add_argument(
+        "paths",
+        nargs="*",
+        help="zero or more log file paths; if omitted, logs are read from stdin.",
     )
     parser.add_argument(
         "--stream",
@@ -25,6 +74,14 @@ def main():
     args = parser.parse_args()
     stream = args.stream
 
+    if not args.paths and sys.stdin.isatty():
+        print(
+            "triage: no input. Provide a log file (triage app.log) or pipe logs "
+            "in (cat app.log | triage). See --help.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
     total = 0
     suspicious = []
     results = []
@@ -34,8 +91,7 @@ def main():
     exit_code = 0
 
     try:
-        data = sys.stdin.read()
-        lines = data.splitlines()
+        lines = _read_lines(args.paths)
         total = len(lines)
 
         suspicious = score_lines(lines)

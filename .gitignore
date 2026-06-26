@@ -9,3 +9,9 @@ stats.txt
 events.jsonl
 run.log
 diag.txt
+out.jsonl
+
+# python build artifacts
+*.egg-info/
+build/
+dist/

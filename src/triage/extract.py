@@ -2,9 +2,9 @@ import json
 
 import requests
 
-from schema import LogEvent, Severity
-from prompts import SYSTEM_PROMPT, CRITIQUE_PROMPT
-from playbook import apply_playbook
+from .schema import LogEvent, Severity
+from .prompts import SYSTEM_PROMPT, CRITIQUE_PROMPT
+from .playbook import apply_playbook
 
 _OLLAMA_URL = "http://localhost:11434/api/generate"
 _MODEL = "gemma2:2b"
